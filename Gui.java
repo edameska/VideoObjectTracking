@@ -79,11 +79,9 @@ public class Gui {
                                 .addComponent(processButton))
         );
 
-        // Set panel in the frame and display the frame
         frame.add(panel);
         frame.setVisible(true);
 
-        // Add action listeners
         inputButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -115,6 +113,7 @@ public class Gui {
         int result = chooser.showOpenDialog(frame);
         if (result == JFileChooser.APPROVE_OPTION) {
             field.setText(chooser.getSelectedFile().getAbsolutePath());
+            Logger.log("Selected file: " + chooser.getSelectedFile().getAbsolutePath());
         }
     }
 
@@ -124,10 +123,12 @@ public class Gui {
         int result = chooser.showOpenDialog(frame);
         if (result == JFileChooser.APPROVE_OPTION) {
             field.setText(chooser.getSelectedFile().getAbsolutePath());
+            Logger.log("Selected folder: " + chooser.getSelectedFile().getAbsolutePath());
         }
     }
 
     private void handleProcessing(String inputPath, String outputPath, String mode) {
         Logger.log("Handling processing");
+
     }
 }
