@@ -1,7 +1,6 @@
 import util.Logger;
 
 import javax.swing.*;
-import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
@@ -33,7 +32,7 @@ public class Gui {
         outputButton = new JButton("Browse");
 
         JLabel modeLabel = new JLabel("Processing Mode:");
-        modeSelector = new JComboBox<>(new String[]{"Sequential", "Parallel", "Distributed"});
+        modeSelector = new JComboBox<>(new String[]{"sequential", "Parallel", "Distributed"});
 
         processButton = new JButton("Process Video");
 

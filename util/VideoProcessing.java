@@ -1,3 +1,5 @@
+package util;
+
 import java.io.IOException;
 
 public class VideoProcessing {
@@ -10,6 +12,7 @@ public class VideoProcessing {
         executeFFmpegCommand(command);
     }
     public void makeVideo(String inputImgPath, String outputFolder, int fps) throws IOException, InterruptedException {
+        Logger.log("Output folder is "+ inputImgPath, LogLevel.Warn);
         String command = String.format("ffmpeg -framerate %d -i %s/frame_%%04d.png -c:v libx264 -pix_fmt yuv420p %s",
                 // -c:v libx264 = codec to use to encode the video
                 //-pix_fmt yuv420p pixel format for compatibility
