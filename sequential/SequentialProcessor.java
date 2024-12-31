@@ -17,6 +17,9 @@ import java.util.Comparator;
 public class SequentialProcessor {
     public void processFramesS(String imgPath, String outputPath, int fps) throws IOException, InterruptedException {
         File inputDir = new File(imgPath);
+        File outputDir = new File(outputPath);
+
+
         File[] frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
         if(frames==null||frames.length==0) {
             Logger.log("No frames found in the input directory", LogLevel.Error);
@@ -25,6 +28,17 @@ public class SequentialProcessor {
         //sort frames numerically by filename
         Arrays.sort(frames, Comparator.comparingInt(f -> Integer.parseInt(f.getName().replaceAll("\\D+", ""))));
 
+        //check if output directory exists and make sure its empty
+        if (outputDir.exists()) {
+            File[] outputFiles = outputDir.listFiles();
+            if (outputFiles != null && outputFiles.length > 0) {
+                for (File file : outputFiles) {
+                    if (!file.delete()) {
+                        Logger.log("Failed to delete file: " + file.getName(), LogLevel.Error);
+                    }
+                }
+            }
+        }
 
         BufferedImage prevFrame=null;
 
@@ -51,7 +65,7 @@ public class SequentialProcessor {
         int width=prevFrame.getWidth();
         int height=prevFrame.getHeight();
 
-        BufferedImage diffFrame=new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+        BufferedImage diffFrame=new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
 
@@ -62,11 +76,12 @@ public class SequentialProcessor {
                 //Logger.log("Pixel difference at " + i + ", " + j + ": " + pixelDifference(prevPixel, currPixel), LogLevel.Debug);
 
                 if ( diff > Constants.PIXEL_DIFF_THRESHOLD) {
+                    //TODO: contiguous areas should be different color to show the difference
+
                     // recolor pixel if difference
-                    //TODO: apply red with transparency
-                    //TODO: Each section of changed pixels (contiguous moving areas) should be colored uniquely.
-                    diffFrame.setRGB(i, j, Color.RED.getRGB());
-                   // Logger.log("Pixel changed at: "+i+" "+j, LogLevel.Debug);
+
+                    diffFrame.setRGB(i, j, new Color(255, 0, 0, 40).getRGB());
+                    // Logger.log("Pixel changed at: "+i+" "+j, LogLevel.Debug);
                 } else {
                     //keep if no difference
                     diffFrame.setRGB(i, j, currPixel);

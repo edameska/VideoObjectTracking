@@ -1,8 +1,11 @@
-import util.Logger;
+package util;
+
+import sequential.SequentialProcessor;
 
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.IOException;
 
 public class Gui {
     private JFrame frame;
@@ -32,7 +35,7 @@ public class Gui {
         outputButton = new JButton("Browse");
 
         JLabel modeLabel = new JLabel("Processing Mode:");
-        modeSelector = new JComboBox<>(new String[]{"sequential", "Parallel", "Distributed"});
+        modeSelector = new JComboBox<>(new String[]{"Sequential", "Parallel", "Distributed"});
 
         processButton = new JButton("Process Video");
 
@@ -127,7 +130,32 @@ public class Gui {
     }
 
     private void handleProcessing(String inputPath, String outputPath, String mode) {
-        Logger.log("Handling processing");
+        if(mode=="Sequential") {
+            Logger.log("Processing in sequential mode", LogLevel.Status);
+            util.VideoProcessing vp = new util.VideoProcessing();
 
+            try {
+                vp.extractFrames(inputPath, outputPath,Constants.FPS);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+
+            Logger.log("Video split");
+
+
+            SequentialProcessor sp = new SequentialProcessor();
+            try {
+                sp.processFramesS(outputPath, Constants.OUTPUT_VIDEO_PATH, Constants.FPS);
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
+            Logger.log("Video processed", LogLevel.Success);
+        }
+
+        frame.dispose();
     }
 }
