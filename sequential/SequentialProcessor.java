@@ -12,6 +12,7 @@ import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.Stack;
 
 
 public class SequentialProcessor {
@@ -65,32 +66,91 @@ public class SequentialProcessor {
         int width=prevFrame.getWidth();
         int height=prevFrame.getHeight();
 
+        boolean [][] visited = new boolean[width][height];
+        Color[] colors=randomColors(10);
+        int colorIndex=0; //index of the color to use for coloring the contiguous area
+
         BufferedImage diffFrame=new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         for (int i = 0; i < width; i++) {
             for (int j = 0; j < height; j++) {
+                if(!visited[i][j]) {
 
-                int prevPixel = prevFrame.getRGB(i, j);
-                int currPixel = currentFrame.getRGB(i, j);
-                double diff= pixelDifference(prevPixel, currPixel);
-                // check if the pixel has changed significantly
-                //Logger.log("Pixel difference at " + i + ", " + j + ": " + pixelDifference(prevPixel, currPixel), LogLevel.Debug);
+                    int prevPixel = prevFrame.getRGB(i, j);
+                    int currPixel = currentFrame.getRGB(i, j);
+                    double diff = pixelDifference(prevPixel, currPixel);
 
-                if ( diff > Constants.PIXEL_DIFF_THRESHOLD) {
-                    //TODO: contiguous areas should be different color to show the difference
 
-                    // recolor pixel if difference
+                    // check if the pixel has changed significantly
+                    //Logger.log("Pixel difference at " + i + ", " + j + ": " + pixelDifference(prevPixel, currPixel), LogLevel.Debug);
 
-                    diffFrame.setRGB(i, j, new Color(255, 0, 0, 40).getRGB());
-                    // Logger.log("Pixel changed at: "+i+" "+j, LogLevel.Debug);
-                } else {
-                    //keep if no difference
-                    diffFrame.setRGB(i, j, currPixel);
+                    if (diff > Constants.PIXEL_DIFF_THRESHOLD) {
+
+                        // recolor pixel if difference
+
+                        //diffFrame.setRGB(i, j, new Color(255, 0, 0, 40).getRGB());
+                        fillRegion(diffFrame, prevFrame, currentFrame, visited, i, j, colors[colorIndex]);
+                        colorIndex = (colorIndex + 1) % colors.length;//cycle through colors
+                        // Logger.log("Pixel changed at: "+i+" "+j, LogLevel.Debug);
+                    } else {
+                        //keep if no difference
+                        diffFrame.setRGB(i, j, currPixel);
+                    }
                 }
             }
 
         }
         return diffFrame;
     }
+
+    private void fillRegion(BufferedImage diffFrame, BufferedImage prevFrame, BufferedImage currentFrame, boolean[][] visited, int x, int y, Color color) {
+        int width = prevFrame.getWidth();
+        int height = prevFrame.getHeight();
+
+        Stack<Point> stack = new Stack<>();
+        stack.push(new Point(x, y));
+
+        while (!stack.isEmpty()) {
+            Point point = stack.pop();
+            int px = point.x;
+            int py = point.y;
+
+            //chheck bounds and already visited
+            if (px < 0 || px >= width || py < 0 || py >= height || visited[px][py]) {
+                continue;
+            }
+
+            int prevPixel = prevFrame.getRGB(px, py);
+            int currPixel = currentFrame.getRGB(px, py);
+            double diff = pixelDifference(prevPixel, currPixel);
+
+            // if pixel difference significant, color it and add neighbors to stack
+            if (diff > Constants.PIXEL_DIFF_THRESHOLD) {
+                visited[px][py] = true;
+                diffFrame.setRGB(px, py, color.getRGB());
+
+                stack.push(new Point(px + 1, py)); //right
+                stack.push(new Point(px - 1, py)); // left
+                stack.push(new Point(px, py + 1)); //down
+                stack.push(new Point(px, py - 1)); //up
+            }
+        }
+    }
+
+
+    private Color[] randomColors(int n) {
+        Color[] colors = new Color[n];
+        for (int i = 0; i < n; i++) {
+            int r = (int) (Math.random() * 256);
+            int g = (int) (Math.random() * 256);
+            int b = (int) (Math.random() * 256);
+            int alpha = (int) (Math.random() * 50);
+
+            colors[i] = new Color(r, g, b, alpha);
+        }
+        return colors;
+    }
+
+
 
     private double pixelDifference(int prevPixel, int currPixel) {
         //rgb structure: AARRGGBB in bytes
