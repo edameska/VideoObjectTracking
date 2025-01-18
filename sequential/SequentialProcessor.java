@@ -130,8 +130,8 @@ public class SequentialProcessor {
 
                 stack.push(new Point(px + 1, py)); //right
                 stack.push(new Point(px - 1, py)); // left
-                stack.push(new Point(px, py + 1)); //down
-                stack.push(new Point(px, py - 1)); //up
+                stack.push(new Point(px, py + 1)); //up
+                stack.push(new Point(px, py - 1)); //down
             }
         }
     }
@@ -165,10 +165,7 @@ public class SequentialProcessor {
 
         int diff = Math.abs(r1 - r2) + Math.abs(g1 - g2) + Math.abs(b1 - b2);
 
-        // diff/n is the average difference per color channel
         // 255 is the maximum value for a color channel
-        // we get a value between 0 and 1
-       // double p = diff / n / 255.0;
 
         return (diff / (3.0 * 255.0)) * 100.0; // Normalize and scale to percentage
     }
