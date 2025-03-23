@@ -12,32 +12,35 @@ import java.util.Scanner;
 public class Main {
     public static void main(String[] args) {
         Logger.log("sequential.Main class started", LogLevel.Success);
-        String[] videos = {Constants.VIDEO_PATH1, Constants.VIDEO_PATH2, Constants.VIDEO_PATH3};
-        Random rand= new Random();
-        int randomIndex = rand.nextInt(videos.length);
-        String inputPath = videos[randomIndex];
+        Logger.log("Enter the path of the video file", LogLevel.Info);
+        Scanner scanner = new Scanner(System.in);
+        String inputPath = scanner.nextLine().trim();
+        if(isValidVideoFile(inputPath)) {
+            Logger.log("Valid file", LogLevel.Success);
+        } else {
+            return;
+        }
 
         handleProcessing(inputPath, Constants.MIDWAY_POINT);
-        Logger.log("Processing complete, video is at location: "+Constants.OUTPUT_FOLDER, LogLevel.Success);
+        Logger.log("Processing complete", LogLevel.Success);
 
     }
 
-    private static boolean validatePaths(String inputPath, String outputPath) {
-        File inputFile = new File(inputPath);
-        File outputDir = new File(outputPath);
-
-        if (!inputFile.isFile()) {
-            Logger.log("Input path is not a valid file: " + inputPath, LogLevel.Error);
+    private static boolean isValidVideoFile(String path) {
+        File file = new File(path);
+        if (!file.exists() || !file.isFile()) {
+            Logger.log("File does not exist or is not a valid file", LogLevel.Error);
             return false;
         }
 
-        if (!outputDir.isDirectory()) {
-            Logger.log("Output path is not a valid directory: " + outputPath, LogLevel.Error);
-            return false;
+        if (path.toLowerCase().endsWith(".mp4")) {
+            return true;
         }
 
-        return true;
+        Logger.log("Unsupported file format", LogLevel.Error);
+        return false;
     }
+
 
     private static void handleProcessing(String inputPath, String outputPath) {
         Logger.log("Processing in sequential mode", LogLevel.Status);
