@@ -1,4 +1,4 @@
-package parallel;
+package distributed;
 
 import util.Constants;
 import util.LogLevel;
@@ -18,8 +18,8 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 
-public class ParallelProcessor {
-    public void processFramesP(String imgPath, String outputPath, int fps) throws IOException, InterruptedException {
+public class DistributedProcessor {
+    public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, InterruptedException {
         File inputDir = new File(imgPath);
         File outputDir = new File(outputPath);
 
