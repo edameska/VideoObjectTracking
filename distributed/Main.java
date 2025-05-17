@@ -18,8 +18,8 @@ public class Main {
         int size = MPI.COMM_WORLD.Size(); // Get the total number of processes
 
         Logger.log("distributed.Main class started with " + size + " processes", LogLevel.Success);
-
-        // Only ask for input on rank 0 (the master process)
+// didnt work because scanner is not supported in distributed mode
+        /*// Only ask for input on rank 0 (the master process)
         String inputPath = null;
         if (rank == 0) {
             Scanner scanner = new Scanner(System.in);
@@ -32,22 +32,32 @@ public class Main {
                 MPI.Finalize();
                 return;
             }
-        }
+        }*/
 
-        // Convert the String inputPath to a char array for broadcasting
-        char[] inputPathChars = new char[0];
+        String inputPath = null;
         if (rank == 0) {
-            inputPathChars = inputPath.toCharArray();
+            inputPath = args[3]; // get from command line, first 3 args are for the mpi
+            if (isValidVideoFile(inputPath)) {
+                Logger.log("Valid file", LogLevel.Success);
+            } else {
+                Logger.log("Invalid file. Exiting.", LogLevel.Error);
+                MPI.Finalize();
+                return;}
+            Logger.log("distributed.Main input path: " + inputPath, LogLevel.Success);
         }
+        byte[] pathBytes = new byte[256];
+        if (rank == 0) {
+            byte[] tmp = inputPath.getBytes();
+            System.arraycopy(tmp, 0, pathBytes, 0, tmp.length);
+        }
+        MPI.COMM_WORLD.Bcast(pathBytes, 0, pathBytes.length, MPI.BYTE, 0);
+        inputPath = new String(pathBytes).trim();
 
-        // Broadcast the char array
-        MPI.COMM_WORLD.Bcast(inputPathChars, 0, inputPathChars.length, MPI.CHAR, 0);
-        inputPath = new String(inputPathChars);
 
-        handleProcessing(inputPath, Constants.MIDWAY_POINT);
+        handleProcessing(inputPath, Constants.MIDWAY_POINT, rank);
 
         Logger.log("Processing complete", LogLevel.Success);
-        MPI.Finalize();
+       // MPI.Finalize();
     }
 
     private static boolean isValidVideoFile(String path) {
@@ -65,13 +75,15 @@ public class Main {
         return false;
     }
 
-    private static void handleProcessing(String inputPath, String outputPath) {
+    private static void handleProcessing(String inputPath, String outputPath, int rank) {
         Logger.log("Processing in distributed mode", LogLevel.Status);
         util.VideoProcessing vp = new util.VideoProcessing();
 
         try {
+            if(rank==0){
             vp.extractFrames(inputPath, outputPath, Constants.FPS);
             Logger.log("Video split successfully", LogLevel.Info);
+            }
 
             DistributedProcessor dp = new DistributedProcessor();
             dp.processFramesD(outputPath, Constants.OUTPUT_VIDEO_PATH, Constants.FPS);

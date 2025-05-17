@@ -8,6 +8,9 @@ public class VideoProcessing {
     public void extractFrames(String inputVideoPath, String outputFolder, int fps) throws IOException, InterruptedException {
         // Check if the folder exists and is not empty
         File folder = new File(outputFolder);
+        if (!folder.exists()) {
+            folder.mkdirs(); // Create the folder if it doesn't exist
+        }
         if (folder.exists() && folder.isDirectory()) {
             File[] files = folder.listFiles();
             if (files != null && files.length > 0) {

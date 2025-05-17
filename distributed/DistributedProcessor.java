@@ -23,122 +23,101 @@ import java.util.concurrent.TimeUnit;
 public class DistributedProcessor {
 
     public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, InterruptedException, MPIException {
-        // Initialize MPI
-        MPI.Init(new String[0]);
-
         try {
             int rank = MPI.COMM_WORLD.Rank();
             int size = MPI.COMM_WORLD.Size();
 
-            File inputDir = new File(imgPath);
-            File outputDir = new File(outputPath);
-
-            // Only rank 0 handles directory validation and frame listing
             File[] frames = null;
+            int numFrames;
+
             if (rank == 0) {
-                frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
+                File inputDir = new File(imgPath);
+                frames = inputDir.listFiles((dir, name) -> name.endsWith(".png"));
+
                 if (frames == null || frames.length == 0) {
                     Logger.log("No frames found in the input directory", LogLevel.Error);
-                    MPI.COMM_WORLD.Bcast(new int[]{0}, 0, 1, MPI.INT, 0); // Signal to abort
+                    MPI.COMM_WORLD.Bcast(new int[]{0}, 0, 1, MPI.INT, 0);
                     return;
                 }
+
                 Arrays.sort(frames, Comparator.comparingInt(f -> Integer.parseInt(f.getName().replaceAll("\\D+", ""))));
 
-                // Prepare output directory
+                // Clear or create output directory
+                File outputDir = new File(outputPath);
                 if (outputDir.exists()) {
-                    File[] outputFiles = outputDir.listFiles();
-                    if (outputFiles != null && outputFiles.length > 0) {
-                        for (File file : outputFiles) {
-                            if (!file.delete()) {
-                                Logger.log("Failed to delete file: " + file.getName(), LogLevel.Error);
-                            }
-                        }
-                    }
+                    for (File f : outputDir.listFiles()) f.delete();
                 } else {
                     outputDir.mkdirs();
                 }
-
-                // Broadcast number of frames to all processes
-                int[] frameCount = new int[]{frames.length};
-                MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
-            } else {
-                // Receive frame count from rank 0
-                int[] frameCount = new int[1];
-                MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
-                if (frameCount[0] == 0) return; // Abort if no frames
             }
 
-            // Get total frame count (broadcasted from rank 0)
+            // Step 1: Broadcast frame count
             int[] frameCount = new int[1];
+            if (rank == 0) frameCount[0] = frames.length;
             MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
-            int numFrames = frameCount[0];
+            numFrames = frameCount[0];
+            if (numFrames == 0) return;
 
-            // Divide work among processes
+            // Step 2: Distribute filenames from rank 0
+            String[] filenames = new String[numFrames];
+            if (rank == 0) {
+                for (int i = 0; i < numFrames; i++) filenames[i] = frames[i].getName();
+            }
+            MPI.COMM_WORLD.Bcast(filenames, 0, numFrames, MPI.OBJECT, 0);
+
+            // Step 3: Calculate assigned range with overlap
             int framesPerProcess = numFrames / size;
             int remainder = numFrames % size;
 
-            int startFrame = rank * framesPerProcess + Math.min(rank, remainder);
-            int endFrame = startFrame + framesPerProcess + (rank < remainder ? 1 : 0);
+            // Regular range calculation (non-overlapping)
+            int regularStart = rank * framesPerProcess + Math.min(rank, remainder);
+            int regularEnd = regularStart + framesPerProcess + (rank < remainder ? 1 : 0);
 
-            Logger.log("Process " + rank + " will process frames from " + startFrame + " to " + (endFrame - 1), LogLevel.Debug);
+            // Adjusted range with overlap (read one frame before your range if not first process)
+            int startFrameRead = (rank > 0) ? regularStart - 1 : regularStart;
+            int endFrameRead = regularEnd;
 
-            // Process assigned frames
-            if (numFrames > 0) {
-                processFrameRange(imgPath, outputPath, startFrame, endFrame);
-            }
+            Logger.log("Process " + rank + " will read frames " + startFrameRead + " to " + (endFrameRead - 1) +
+                    " and process " + regularStart + " to " + (regularEnd - 1), LogLevel.Debug);
 
-            // Synchronize all processes
+            // Step 4: Process frames with overlap handling
+            processFramesWithOverlap(imgPath, outputPath, filenames, startFrameRead, endFrameRead, regularStart);
+
             MPI.COMM_WORLD.Barrier();
 
-            // Rank 0 handles video creation
             if (rank == 0) {
                 VideoProcessing vp = new VideoProcessing();
                 vp.makeVideo(outputPath, "output.mp4", fps);
-                Logger.log("Processing complete in parallel", LogLevel.Status);
+                Logger.log("Processing complete in distributed mode", LogLevel.Status);
             }
         } finally {
             MPI.Finalize();
         }
     }
 
-    private void processFrameRange(String imgPath, String outputPath, int startFrame, int endFrame)
-            throws IOException, InterruptedException {
-        File inputDir = new File(imgPath);
-        File[] frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
-        Arrays.sort(frames, Comparator.comparingInt(f -> Integer.parseInt(f.getName().replaceAll("\\D+", ""))));
 
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
-        BufferedImage prevFrame = null;
+    private void processFramesWithOverlap(String imgPath, String outputPath, String[] filenames,
+                                          int startRead, int endRead, int regularStart) throws IOException {
+        // Read the first frame
+        BufferedImage prevFrame = ImageIO.read(new File(imgPath, filenames[startRead]));
 
-        // Load the first frame if this process isn't starting at frame 0
-        if (startFrame > 0) {
-            prevFrame = ImageIO.read(frames[startFrame - 1]);
-        }
+        // Process each subsequent frame
+        for (int i = startRead + 1; i < endRead; i++) {
+            File currentFrameFile = new File(imgPath, filenames[i]);
+            BufferedImage currentFrame = ImageIO.read(currentFrameFile);
 
-        for (int i = startFrame; i < endFrame && i < frames.length - 1; i++) {
-            File frameFile1 = frames[i];
-            File frameFile2 = frames[i + 1];
-
-            BufferedImage currentFrame = ImageIO.read(frameFile2);
-
-            if (prevFrame != null) {
-                BufferedImage finalPrevFrame = prevFrame;
-                executor.submit(() -> {
-                    try {
-                        Logger.log("Processing frame: " + frameFile2.getName(), LogLevel.Debug);
-                        BufferedImage diffFrame = computeDifference(finalPrevFrame, currentFrame);
-                        saveProccessedFrame(diffFrame, outputPath, frameFile2.getName());
-                    } catch (IOException e) {
-                        Logger.log("Error processing frame: " + frameFile2.getName(), LogLevel.Error);
-                    }
-                });
+            // Only process and save frames that are in our regular (non-overlap) range
+            if (i >= regularStart) {
+                Logger.log("Processing frame: " + currentFrameFile.getName(), LogLevel.Debug);
+                BufferedImage diff = computeDifference(prevFrame, currentFrame);
+                saveProccessedFrame(diff, outputPath, currentFrameFile.getName());
             }
+
             prevFrame = currentFrame;
         }
-
-        executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
     }
+
+
 
     private void saveProccessedFrame(BufferedImage frame, String output, String frameName) throws IOException {
         File outputFile = new File(output, frameName);
