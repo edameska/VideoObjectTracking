@@ -1,5 +1,7 @@
 package distributed;
 
+import mpi.MPI;
+import mpi.MPIException;
 import util.Constants;
 import util.LogLevel;
 import util.Logger;
@@ -19,36 +21,101 @@ import java.util.concurrent.TimeUnit;
 
 
 public class DistributedProcessor {
-    public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, InterruptedException {
-        File inputDir = new File(imgPath);
-        File outputDir = new File(outputPath);
 
+    public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, InterruptedException, MPIException {
+        // Initialize MPI
+        MPI.Init(new String[0]);
 
-        File[] frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
-        if(frames==null||frames.length==0) {
-            Logger.log("No frames found in the input directory", LogLevel.Error);
-            return;
+        try {
+            int rank = MPI.COMM_WORLD.Rank();
+            int size = MPI.COMM_WORLD.Size();
+
+            File inputDir = new File(imgPath);
+            File outputDir = new File(outputPath);
+
+            // Only rank 0 handles directory validation and frame listing
+            File[] frames = null;
+            if (rank == 0) {
+                frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
+                if (frames == null || frames.length == 0) {
+                    Logger.log("No frames found in the input directory", LogLevel.Error);
+                    MPI.COMM_WORLD.Bcast(new int[]{0}, 0, 1, MPI.INT, 0); // Signal to abort
+                    return;
+                }
+                Arrays.sort(frames, Comparator.comparingInt(f -> Integer.parseInt(f.getName().replaceAll("\\D+", ""))));
+
+                // Prepare output directory
+                if (outputDir.exists()) {
+                    File[] outputFiles = outputDir.listFiles();
+                    if (outputFiles != null && outputFiles.length > 0) {
+                        for (File file : outputFiles) {
+                            if (!file.delete()) {
+                                Logger.log("Failed to delete file: " + file.getName(), LogLevel.Error);
+                            }
+                        }
+                    }
+                } else {
+                    outputDir.mkdirs();
+                }
+
+                // Broadcast number of frames to all processes
+                int[] frameCount = new int[]{frames.length};
+                MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
+            } else {
+                // Receive frame count from rank 0
+                int[] frameCount = new int[1];
+                MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
+                if (frameCount[0] == 0) return; // Abort if no frames
+            }
+
+            // Get total frame count (broadcasted from rank 0)
+            int[] frameCount = new int[1];
+            MPI.COMM_WORLD.Bcast(frameCount, 0, 1, MPI.INT, 0);
+            int numFrames = frameCount[0];
+
+            // Divide work among processes
+            int framesPerProcess = numFrames / size;
+            int remainder = numFrames % size;
+
+            int startFrame = rank * framesPerProcess + Math.min(rank, remainder);
+            int endFrame = startFrame + framesPerProcess + (rank < remainder ? 1 : 0);
+
+            Logger.log("Process " + rank + " will process frames from " + startFrame + " to " + (endFrame - 1), LogLevel.Debug);
+
+            // Process assigned frames
+            if (numFrames > 0) {
+                processFrameRange(imgPath, outputPath, startFrame, endFrame);
+            }
+
+            // Synchronize all processes
+            MPI.COMM_WORLD.Barrier();
+
+            // Rank 0 handles video creation
+            if (rank == 0) {
+                VideoProcessing vp = new VideoProcessing();
+                vp.makeVideo(outputPath, "output.mp4", fps);
+                Logger.log("Processing complete in parallel", LogLevel.Status);
+            }
+        } finally {
+            MPI.Finalize();
         }
-        //sort frames numerically by filename
+    }
+
+    private void processFrameRange(String imgPath, String outputPath, int startFrame, int endFrame)
+            throws IOException, InterruptedException {
+        File inputDir = new File(imgPath);
+        File[] frames = inputDir.listFiles(((dir, name) -> name.endsWith(".png")));
         Arrays.sort(frames, Comparator.comparingInt(f -> Integer.parseInt(f.getName().replaceAll("\\D+", ""))));
 
-        //check if output directory exists and make sure its empty
-        if (outputDir.exists()) {
-            File[] outputFiles = outputDir.listFiles();
-            if (outputFiles != null && outputFiles.length > 0) {
-                for (File file : outputFiles) {
-                    if (!file.delete()) {
-                        Logger.log("Failed to delete file: " + file.getName(), LogLevel.Error);
-                    }
-                }
-            }
+        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors());
+        BufferedImage prevFrame = null;
+
+        // Load the first frame if this process isn't starting at frame 0
+        if (startFrame > 0) {
+            prevFrame = ImageIO.read(frames[startFrame - 1]);
         }
-        //creatinf a threadpool with #threads=#cores-1 so that 1 still works if i mess up
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-1);
-        long start =System.currentTimeMillis();
-        BufferedImage prevFrame=null;
-        Logger.log("Processing frames", LogLevel.Status);
-        for (int i = 0; i < frames.length - 1; i++) {
+
+        for (int i = startFrame; i < endFrame && i < frames.length - 1; i++) {
             File frameFile1 = frames[i];
             File frameFile2 = frames[i + 1];
 
@@ -71,12 +138,7 @@ public class DistributedProcessor {
 
         executor.shutdown();
         executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
-        VideoProcessing vp=new VideoProcessing();
-        vp.makeVideo(outputPath, "output.mp4", fps);
-        Logger.log("Processing complete in parallel in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
-
     }
-
 
     private void saveProccessedFrame(BufferedImage frame, String output, String frameName) throws IOException {
         File outputFile = new File(output, frameName);

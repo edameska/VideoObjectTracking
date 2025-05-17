@@ -1,31 +1,53 @@
 package distributed;
 
-import parallel.ParallelProcessor;
 import util.Constants;
 import util.LogLevel;
 import util.Logger;
+import mpi.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class Main {
-    public static void main(String[] args) {
-        Logger.log("distributed.Main class started", LogLevel.Success);
+    public static void main(String[] args) throws MPIException {
+        // Initialize MPJ
+        MPI.Init(args);
 
-        if (args.length == 0) {
-            Logger.log("No input path provided. Usage: mpjrun.sh -np N distributed.Main <inputPath>", LogLevel.Error);
-            return;
+        int rank = MPI.COMM_WORLD.Rank(); // Get the rank of the current process
+        int size = MPI.COMM_WORLD.Size(); // Get the total number of processes
+
+        Logger.log("distributed.Main class started with " + size + " processes", LogLevel.Success);
+
+        // Only ask for input on rank 0 (the master process)
+        String inputPath = null;
+        if (rank == 0) {
+            Scanner scanner = new Scanner(System.in);
+            System.out.println("Enter the path of the video file:");
+            inputPath = scanner.nextLine().trim();
+            if (isValidVideoFile(inputPath)) {
+                Logger.log("Valid file", LogLevel.Success);
+            } else {
+                Logger.log("Invalid file. Exiting.", LogLevel.Error);
+                MPI.Finalize();
+                return;
+            }
         }
 
-        String inputPath = args[0].trim();
-        if (isValidVideoFile(inputPath)) {
-            Logger.log("Valid file", LogLevel.Success);
-        } else {
-            return;
+        // Convert the String inputPath to a char array for broadcasting
+        char[] inputPathChars = new char[0];
+        if (rank == 0) {
+            inputPathChars = inputPath.toCharArray();
         }
+
+        // Broadcast the char array
+        MPI.COMM_WORLD.Bcast(inputPathChars, 0, inputPathChars.length, MPI.CHAR, 0);
+        inputPath = new String(inputPathChars);
 
         handleProcessing(inputPath, Constants.MIDWAY_POINT);
+
         Logger.log("Processing complete", LogLevel.Success);
+        MPI.Finalize();
     }
 
     private static boolean isValidVideoFile(String path) {

@@ -1,0 +1,196 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="ff780904-424c-48b5-8860-173aa45480aa" name="Changes" comment="Final tweaks" />
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="RESET_MODE" value="MIXED" />
+  </component>
+  <component name="GitHubPullRequestSearchHistory">{
+  &quot;lastFilter&quot;: {
+    &quot;state&quot;: &quot;OPEN&quot;,
+    &quot;assignee&quot;: &quot;edameska&quot;
+  }
+}</component>
+  <component name="GithubPullRequestsUISettings">{
+  &quot;selectedUrlAndAccountId&quot;: {
+    &quot;url&quot;: &quot;https://github.com/edameska/VideoObjectTracking.git&quot;,
+    &quot;accountId&quot;: &quot;6786b663-bbea-4bd1-92ab-0103f7b9ff44&quot;
+  }
+}</component>
+  <component name="HighlightingSettingsPerFile">
+    <setting file="file://$PROJECT_DIR$/Sequential/SequentialProcessor.java" root0="SKIP_INSPECTION" />
+  </component>
+  <component name="ProblemsViewState">
+    <option name="selectedTabId" value="CurrentFile" />
+  </component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 5
+}</component>
+  <component name="ProjectId" id="2qXGNKYQnYkOZDtNAqWP0Gs7FCZ" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;master&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;/home/edameska/Desktop/Prog3&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;project.structure.last.edited&quot;: &quot;Project&quot;,
+    &quot;project.structure.proportion&quot;: &quot;0.0&quot;,
+    &quot;project.structure.side.proportion&quot;: &quot;0.0&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.pluginManager&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$" />
+      <recent name="$PROJECT_DIR$/sequential" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="sequential.Main" />
+      <module name="Prog3" />
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="ff780904-424c-48b5-8860-173aa45480aa" name="Changes" comment="" />
+      <created>1734801464456</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1734801464456</updated>
+      <workItem from="1734801465649" duration="9819000" />
+      <workItem from="1734819608460" duration="795000" />
+      <workItem from="1734982742124" duration="100000" />
+      <workItem from="1734982859934" duration="84000" />
+      <workItem from="1734982947098" duration="941000" />
+      <workItem from="1734983911078" duration="3514000" />
+      <workItem from="1734987452016" duration="351000" />
+      <workItem from="1734987805043" duration="108000" />
+      <workItem from="1734987934001" duration="4614000" />
+      <workItem from="1735588760742" duration="3052000" />
+      <workItem from="1735636398330" duration="3264000" />
+      <workItem from="1735762163869" duration="2736000" />
+      <workItem from="1737187880664" duration="4028000" />
+    </task>
+    <task id="LOCAL-00001" summary="Created GUI and added example videos">
+      <option name="closed" value="true" />
+      <created>1734806711839</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1734806711839</updated>
+    </task>
+    <task id="LOCAL-00002" summary="added logging for future debugging">
+      <option name="closed" value="true" />
+      <created>1734807022874</created>
+      <option name="number" value="00002" />
+      <option name="presentableId" value="LOCAL-00002" />
+      <option name="project" value="LOCAL" />
+      <updated>1734807022874</updated>
+    </task>
+    <task id="LOCAL-00003" summary="added Process Builder using the FFmpeg command">
+      <option name="closed" value="true" />
+      <created>1734819180926</created>
+      <option name="number" value="00003" />
+      <option name="presentableId" value="LOCAL-00003" />
+      <option name="project" value="LOCAL" />
+      <updated>1734819180926</updated>
+    </task>
+    <task id="LOCAL-00004" summary="Sequential part added, debug later">
+      <option name="closed" value="true" />
+      <created>1734992533261</created>
+      <option name="number" value="00004" />
+      <option name="presentableId" value="LOCAL-00004" />
+      <option name="project" value="LOCAL" />
+      <updated>1734992533261</updated>
+    </task>
+    <task id="LOCAL-00005" summary="Fixed issue with coloring the pixels">
+      <option name="closed" value="true" />
+      <created>1735592160689</created>
+      <option name="number" value="00005" />
+      <option name="presentableId" value="LOCAL-00005" />
+      <option name="project" value="LOCAL" />
+      <updated>1735592160690</updated>
+    </task>
+    <task id="LOCAL-00006" summary="Now checks contiguous areas">
+      <option name="closed" value="true" />
+      <created>1735764842220</created>
+      <option name="number" value="00006" />
+      <option name="presentableId" value="LOCAL-00006" />
+      <option name="project" value="LOCAL" />
+      <updated>1735764842220</updated>
+    </task>
+    <task id="LOCAL-00007" summary="Final tweaks">
+      <option name="closed" value="true" />
+      <created>1737191761554</created>
+      <option name="number" value="00007" />
+      <option name="presentableId" value="LOCAL-00007" />
+      <option name="project" value="LOCAL" />
+      <updated>1737191761554</updated>
+    </task>
+    <option name="localTasksCounter" value="8" />
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="Created GUI and added example videos" />
+    <MESSAGE value="added logging for future debugging" />
+    <MESSAGE value="added Process Builder using the FFmpeg command" />
+    <MESSAGE value="Sequential part added, debug later" />
+    <MESSAGE value="Fixed issue with coloring the pixels" />
+    <MESSAGE value="Now checks contiguous areas" />
+    <MESSAGE value="Final tweaks" />
+    <option name="LAST_COMMIT_MESSAGE" value="Final tweaks" />
+  </component>
+</project>
