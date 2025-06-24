@@ -6,16 +6,20 @@ import util.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Random;
-import java.util.Scanner;
 
 public class Main {
     public static void main(String[] args) {
         Logger.log("sequential.Main class started", LogLevel.Success);
-        Logger.log("Enter the path of the video file", LogLevel.Info);
-        Scanner scanner = new Scanner(System.in);
-        String inputPath = scanner.nextLine().trim();
-        if(isValidVideoFile(inputPath)) {
+
+        if (args.length == 0) {
+            Logger.log("No video path provided. Usage: java sequential.Main <video_path>", LogLevel.Error);
+            return;
+        }
+
+        String inputPath = args[0].trim();
+        Logger.log("Received video path: " + inputPath, LogLevel.Info);
+
+        if (isValidVideoFile(inputPath)) {
             Logger.log("Valid file", LogLevel.Success);
         } else {
             return;
@@ -23,7 +27,6 @@ public class Main {
 
         handleProcessing(inputPath, Constants.MIDWAY_POINT);
         Logger.log("Processing complete", LogLevel.Success);
-
     }
 
     private static boolean isValidVideoFile(String path) {
@@ -40,7 +43,6 @@ public class Main {
         Logger.log("Unsupported file format", LogLevel.Error);
         return false;
     }
-
 
     private static void handleProcessing(String inputPath, String outputPath) {
         Logger.log("Processing in sequential mode", LogLevel.Status);
