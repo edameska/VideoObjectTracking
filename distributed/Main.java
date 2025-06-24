@@ -50,6 +50,7 @@ public class Main {
             byte[] tmp = inputPath.getBytes();
             System.arraycopy(tmp, 0, pathBytes, 0, tmp.length);
         }
+        long start = System.currentTimeMillis();
         MPI.COMM_WORLD.Bcast(pathBytes, 0, pathBytes.length, MPI.BYTE, 0);
         inputPath = new String(pathBytes).trim();
 
@@ -57,6 +58,7 @@ public class Main {
         handleProcessing(inputPath, Constants.MIDWAY_POINT, rank);
 
         Logger.log("Processing complete", LogLevel.Success);
+        Logger.log("Time taken: " + (System.currentTimeMillis() - start) + " ms", LogLevel.Info);
        // MPI.Finalize();
     }
 
