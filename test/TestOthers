@@ -1,0 +1,43 @@
+package test;
+
+import java.io.ByteArrayInputStream;
+
+public class TestOthers {
+    public static void main(String[] args) {
+        String videoPath = "/home/edameska/Downloads/89221002_VideoObjectTracking/videos/fps120.mp4";
+
+        System.out.println("Starting sequential.Main test...");
+        setInput(videoPath);
+        long seqTime = timeSequentialMain(videoPath);
+        System.out.println("sequential.Main took " + seqTime + " ms\n");
+
+        System.gc();
+        try {
+            Thread.sleep(1000);  // wait 1 second before next test
+        } catch (InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+
+        System.out.println("Starting parallel.Main test...");
+        setInput(videoPath);
+        long parTime = timeParallelMain(videoPath);
+        System.out.println("parallel.Main took " + parTime + " ms\n");
+    }
+
+    private static void setInput(String input) {
+        ByteArrayInputStream bais = new ByteArrayInputStream((input + "\n").getBytes());
+        System.setIn(bais);
+    }
+
+    private static long timeSequentialMain(String videoPath) {
+        long start = System.currentTimeMillis();
+        sequential.Main.main(new String[]{videoPath}); // no args needed since input is simulated
+        return System.currentTimeMillis() - start;
+    }
+
+    private static long timeParallelMain(String videoPath) {
+        long start = System.currentTimeMillis();
+        parallel.Main.main(new String[]{videoPath});
+        return System.currentTimeMillis() - start;
+    }
+}
