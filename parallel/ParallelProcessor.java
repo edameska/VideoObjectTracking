@@ -34,14 +34,11 @@ public class ParallelProcessor {
 
         //check if output directory exists and make sure its empty
         if (outputDir.exists()) {
-            File[] outputFiles = outputDir.listFiles();
-            if (outputFiles != null && outputFiles.length > 0) {
-                for (File file : outputFiles) {
-                    if (!file.delete()) {
-                        Logger.log("Failed to delete file: " + file.getName(), LogLevel.Error);
-                    }
-                }
+            for (File file : outputDir.listFiles()) {
+                deleteRecursively(file);
             }
+        } else {
+            outputDir.mkdirs();
         }
         //creatinf a threadpool with #threads=#cores-1 so that 1 still works if i mess up
         ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-1);
@@ -76,6 +73,18 @@ public class ParallelProcessor {
         Logger.log("Processing complete in parallel in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
 
     }
+
+    private void deleteRecursively(File file) {
+        if (file.isDirectory()) {
+            for (File sub : file.listFiles()) {
+                deleteRecursively(sub);
+            }
+        }
+        if (!file.delete()) {
+            Logger.log("Failed to delete file: " + file.getAbsolutePath(), LogLevel.Error);
+        }
+    }
+
 
 
     private void saveProccessedFrame(BufferedImage frame, String output, String frameName) throws IOException {
