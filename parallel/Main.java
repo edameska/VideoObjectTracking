@@ -6,23 +6,28 @@ import util.Logger;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Scanner;
 
-public class Main {public static void main(String[] args) {
-    Logger.log("parallel.Main class started", LogLevel.Success);
-    Logger.log("Enter the path of the video file", LogLevel.Info);
-    Scanner scanner = new Scanner(System.in);
-    String inputPath = scanner.nextLine().trim();
-    if(isValidVideoFile(inputPath)) {
-        Logger.log("Valid file", LogLevel.Success);
-    } else {
-        return;
+public class Main {
+    public static void main(String[] args) {
+        Logger.log("parallel.Main class started", LogLevel.Success);
+
+        if (args.length == 0) {
+            Logger.log("No video path provided. Usage: java parallel.Main <video_path>", LogLevel.Error);
+            return;
+        }
+
+        String inputPath = args[0].trim();
+        Logger.log("Received video path: " + inputPath, LogLevel.Info);
+
+        if (isValidVideoFile(inputPath)) {
+            Logger.log("Valid file", LogLevel.Success);
+        } else {
+            return;
+        }
+
+        handleProcessing(inputPath, Constants.MIDWAY_POINT);
+        Logger.log("Processing complete", LogLevel.Success);
     }
-
-    handleProcessing(inputPath, Constants.MIDWAY_POINT);
-    Logger.log("Processing complete", LogLevel.Success);
-
-}
 
     private static boolean isValidVideoFile(String path) {
         File file = new File(path);
@@ -38,7 +43,6 @@ public class Main {public static void main(String[] args) {
         Logger.log("Unsupported file format", LogLevel.Error);
         return false;
     }
-
 
     private static void handleProcessing(String inputPath, String outputPath) {
         Logger.log("Processing in parallel mode", LogLevel.Status);
