@@ -17,18 +17,38 @@ Three approaches were implemented: sequential, parallel, and distributed. Parall
 2. Extract and set environment variables:  
    - `MPJ_HOME` to MPJ folder  
    - Add `$MPJ_HOME/bin` to your `PATH`
-
-3. Compile your code with MPJ’s `mpjcompile`
-
-4. Run distributed programs using `mpjrun.sh`
-
-Example:
-
+  
 ```bash
-mpjrun.sh -np 4 -classpath <your_classpath> distributed.Main <args>
+export MPJ_HOME=/path/to/mpj-express
+export PATH=$MPJ_HOME/bin:$PATH
 ```
 
 Refer to [MPJ Express documentation](https://mpj-express.org/docs/readme/README) for detailed instructions.
 
+### Usage
+1. Compile the utility classes first
+2. Sequential version
+  - Compile the sequential version
+  - Run the sequential version with:
+
+```bash
+java sequential.Main <path_to_input_video.mp4>
+```
+3. Parallel version
+  - Compile the parallel version
+  - Run the parallel version with:
+
+```bash
+java parallel.Main <path_to_input_video.mp4>
+```
+4. Distributed Version
+- Compile the distributed version:
+```bash
+javac -cp .:$MPJ_HOME/lib/mpj.jar distributed/*.java
+```
+- Run the distributed version, specifying the number of processes
+```bash
+$MPJ_HOME/bin/mpjrun.sh -np <number_of_processes> -cp . distributed.Main <path_to_video_file>
+```
 
 
