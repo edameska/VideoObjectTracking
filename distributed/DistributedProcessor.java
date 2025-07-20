@@ -16,7 +16,7 @@ public class DistributedProcessor {
     public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, MPIException, InterruptedException {
         int rank = MPI.COMM_WORLD.Rank();
         int size = MPI.COMM_WORLD.Size();
-        long startTime =System.currentTimeMillis();
+        long startTime = System.currentTimeMillis();
 
 
         if (rank == 0) {
@@ -72,18 +72,18 @@ public class DistributedProcessor {
                     int start = range[0];
                     int end = range[1];
                     for (int i = start + 1; i < end; i++) {
-                        if (MPI.COMM_WORLD.Iprobe(r, 2000 + i)!=null) {
                             Logger.log("Receiving diff for frame " + (i + 1) + " from rank " + r, LogLevel.Debug);
-                            byte[] diffBytes = recvChunkedBytes(r, 2000 + i);
+                            byte[] diffBytes = recvChunkedBytes(r, 20000 + i);
                             Logger.log("Received diff for frame " + (i + 1) + " from rank " + r, LogLevel.Debug);
                             try (FileOutputStream fos = new FileOutputStream(new File(outputPath, filenames[i]))) {
                                 fos.write(diffBytes);
                             }
-                    }
+
                 }
             }
 
 
+            Logger.log("Finished processing frames in " + (System.currentTimeMillis() - startTime) + " ms", LogLevel.Info);
 
             new VideoProcessing().makeVideo(outputPath, "output.mp4", fps);
             Logger.log("Distributed processing complete.", LogLevel.Status);
@@ -127,16 +127,13 @@ public class DistributedProcessor {
 
             // Now send all diffs at once
             for (int i = 1; i < diffBytesList.size() + 1; i++) {
-                sendChunkedBytes(diffBytesList.get(i - 1), 0, 2000 + (start + i));
+                sendChunkedBytes(diffBytesList.get(i - 1), 0, 20000 + (start + i));
             }
 
 
             Logger.log("Rank " + rank + " done sending all diffs", LogLevel.Info);
         }
 
-        long endTime = System.currentTimeMillis();
-        Logger.log("Rank " + rank + " processing time: " + (endTime - startTime) + " ms", LogLevel.Status);
-        MPI.Finalize();
     }
 
     private void deleteRecursively(File file) {
@@ -351,5 +348,4 @@ public class DistributedProcessor {
         return (diff / (3.0 * 255.0)) * 100.0; // Normalize and scale to percentage
     }
 }
-
 
