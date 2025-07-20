@@ -12,7 +12,7 @@ import java.util.*;
 import java.util.List;
 
 public class DistributedProcessor {
-    private static final int CHUNK_SIZE = 128 * 1024; // 64KB chunks for sending bytes so we limit overhead but don't overload the network/buffer overflow
+    private static final int CHUNK_SIZE = 1024 * 1024; // 1MB chunks for sending bytes so we limit overhead but don't overload the network/buffer overflow
     public void processFramesD(String imgPath, String outputPath, int fps) throws IOException, MPIException, InterruptedException {
         int rank = MPI.COMM_WORLD.Rank();
         int size = MPI.COMM_WORLD.Size();
