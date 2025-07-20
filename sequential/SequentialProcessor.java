@@ -50,9 +50,10 @@ public class SequentialProcessor {
             }
             prevFrame=currentFrame;
         }
+        Logger.log("Processing complete sequentially in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
+
         VideoProcessing vp=new VideoProcessing();
         vp.makeVideo(outputPath, "output.mp4", fps);
-        Logger.log("Processing complete sequentially in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
     }
 
     private void saveProccessedFrame(BufferedImage frame, String output, String frameName) throws IOException {
