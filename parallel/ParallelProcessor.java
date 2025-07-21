@@ -41,36 +41,39 @@ public class ParallelProcessor {
             outputDir.mkdirs();
         }
         //creatinf a threadpool with #threads=#cores-1 so that 1 still works if i mess up
-        ExecutorService executor = Executors.newFixedThreadPool(Runtime.getRuntime().availableProcessors()-1);
-        long start =System.currentTimeMillis();
-        BufferedImage prevFrame=null;
-        Logger.log("Processing frames", LogLevel.Status);
-        for (int i = 0; i < frames.length - 1; i++) {
-            File frameFile1 = frames[i];
-            File frameFile2 = frames[i + 1];
+        int numThreads = Runtime.getRuntime().availableProcessors()-1;
+        ExecutorService executor = Executors.newFixedThreadPool(numThreads);
+        long start = System.currentTimeMillis();
 
-            BufferedImage currentFrame = ImageIO.read(frameFile2);
+        int totalFrames = frames.length - 1;
+        int chunkSize = (int) Math.ceil((double) totalFrames / numThreads);
 
-            if (prevFrame != null) {
-                BufferedImage finalPrevFrame = prevFrame;
-                executor.submit(() -> {
+        for (int t = 0; t < numThreads; t++) {
+            int startFrame = t * chunkSize;
+            int end = Math.min(startFrame + chunkSize, totalFrames); //wnsure we dont go out of bounds
+
+            executor.submit(() -> { // process frames in this chunk
+                for (int i = startFrame; i < end; i++) {
                     try {
-                        Logger.log("Processing frame: " + frameFile2.getName(), LogLevel.Debug);
-                        BufferedImage diffFrame = computeDifference(finalPrevFrame, currentFrame);
-                        saveProccessedFrame(diffFrame, outputPath, frameFile2.getName());
+                        BufferedImage frame1 = ImageIO.read(frames[i]);
+                        BufferedImage frame2 = ImageIO.read(frames[i + 1]);
+
+                        Logger.log("Thread " + Thread.currentThread().getName() + " processing frames: " + frames[i].getName() + " and " + frames[i + 1].getName(), LogLevel.Debug);
+                        BufferedImage diff = computeDifference(frame1, frame2);
+                        saveProccessedFrame(diff, outputPath, frames[i + 1].getName());
                     } catch (IOException e) {
-                        Logger.log("Error processing frame: " + frameFile2.getName(), LogLevel.Error);
+                        Logger.log("Error processing frame pair: " + i, LogLevel.Error);
                     }
-                });
-            }
-            prevFrame = currentFrame;
+                }
+            });
         }
 
         executor.shutdown();
-        executor.awaitTermination(Long.MAX_VALUE, TimeUnit.NANOSECONDS);
+        executor.awaitTermination(1, TimeUnit.HOURS);
+        Logger.log("Processing complete in parallel in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
+
         VideoProcessing vp=new VideoProcessing();
         vp.makeVideo(outputPath, "output.mp4", fps);
-        Logger.log("Processing complete in parallel in "+ (System.currentTimeMillis()-start)+" ms", LogLevel.Status);
 
     }
 
